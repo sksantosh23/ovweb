@@ -1,0 +1,30 @@
+# Save this as: /public/robots.txt
+# Robots.txt for OMNIVERITY AI
+
+User-agent: *
+Allow: /
+
+# Disallow admin and API routes
+Disallow: /api/
+Disallow: /admin/
+Disallow: /_next/
+Disallow: /products/*/edit
+
+# Allow all search engines
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
+Allow: /
+
+User-agent: DuckDuckBot
+Allow: /
+
+# Sitemap location
+Sitemap: https://omniverity.com/sitemap.xml
+
+# Crawl-delay for respectful crawling
+Crawl-delay: 1
