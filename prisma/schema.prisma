@@ -1,3 +1,6 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -7,21 +10,85 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// =====================
+// USER MODEL (with security fields)
+// =====================
 model User {
-  id          String   @id @default(cuid())
-  username    String   @unique
-  password    String
-  accountKey  String
-  email       String   @unique
-  product     String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                  String    @id @default(cuid())
+  username            String    @unique
+  password            String
+  accountKey          String
+  email               String    @unique
+  product             String?
+  
+  // Security fields
+  isActive            Boolean   @default(true)
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+  lastLoginAt         DateTime?
+  
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
 }
 
+// =====================
+// PRODUCT MODEL
+// =====================
 model Product {
   id          String   @id @default(cuid())
   code        String   @unique
   name        String
   description String
   active      Boolean  @default(true)
+}
+
+// =====================
+// BOOKING SYSTEM ENUMS
+// =====================
+enum TeamType {
+  MARKETING
+  SALES
+  PRODUCT
+}
+
+enum ProductCategory {
+  EHP
+  OIMS
+  PAYNET
+  CLICKCONNECT
+  BLOK
+  GENERAL
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+}
+
+// =====================
+// BOOKING MODEL
+// =====================
+model Booking {
+  id              String          @id @default(uuid())
+  firstName       String
+  lastName        String
+  email           String
+  phoneNumber     String
+  companyDomain   String
+  team            TeamType
+  productCategory ProductCategory
+  description     String          @db.Text
+  date            DateTime
+  startTime       String
+  endTime         String
+  timezone        String
+  status          BookingStatus   @default(PENDING)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([date, startTime])
+  @@index([email])
+  @@index([status])
 }
