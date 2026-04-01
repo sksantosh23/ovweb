@@ -5,210 +5,179 @@ import { useEffect } from 'react';
 /**
  * ClientSecurity Component
  * 
- * Implements client-side security measures:
- * - Disables right-click context menu
- * - Blocks keyboard shortcuts for dev tools
- * - Prevents text selection on sensitive areas
- * - Detects and warns about dev tools
- * - Clears console with security message
+ * Implements client-side security measures that DO NOT harm accessibility:
  * 
- * Note: These are deterrents, not foolproof security measures.
- * Always implement proper server-side security.
+ * ✅ INCLUDED (accessibility-safe):
+ * - Console security warning (prevents self-XSS attacks)
+ * - Dev tools detection for analytics (non-blocking)
+ * 
+ * ❌ REMOVED (breaks accessibility):
+ * - Right-click disable: Screen reader users need context menus
+ * - Keyboard shortcut blocking: Interferes with assistive technologies
+ * - Text selection prevention: Users need to copy content
+ * - Print blocking: Violates user expectations
+ * - Image drag prevention: Not a real security measure
+ * 
+ * IMPORTANT: These client-side "protections" were never real security.
+ * Anyone can bypass them. Real security comes from:
+ * - Server-side authentication & authorization
+ * - Input validation & sanitization
+ * - HTTPS & security headers (configured in next.config.js)
+ * - Rate limiting & CSRF protection
+ * 
+ * @see https://webaim.org/blog/web-accessibility-and-security/
  */
 export default function ClientSecurity() {
   useEffect(() => {
-    // Only run in production
+    // Only run security features in production
     if (process.env.NODE_ENV !== 'production') {
-      console.log('🔓 Security measures disabled in development mode');
+      console.log(
+        '%c🔓 Development Mode',
+        'color: #10b981; font-size: 14px; font-weight: bold;'
+      );
+      console.log(
+        '%cSecurity warnings are disabled in development.',
+        'color: #64748b; font-size: 12px;'
+      );
       return;
     }
 
     // =====================
-    // Disable Right Click
+    // Console Security Warning
     // =====================
-    const handleContextMenu = (e: MouseEvent) => {
-      e.preventDefault();
-      return false;
-    };
-
-    // =====================
-    // Block Dev Tools Shortcuts
-    // =====================
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // F12
-      if (e.key === 'F12') {
-        e.preventDefault();
-        return false;
-      }
-
-      // Ctrl+Shift+I (Dev Tools)
-      if (e.ctrlKey && e.shiftKey && e.key === 'I') {
-        e.preventDefault();
-        return false;
-      }
-
-      // Ctrl+Shift+J (Console)
-      if (e.ctrlKey && e.shiftKey && e.key === 'J') {
-        e.preventDefault();
-        return false;
-      }
-
-      // Ctrl+Shift+C (Inspect Element)
-      if (e.ctrlKey && e.shiftKey && e.key === 'C') {
-        e.preventDefault();
-        return false;
-      }
-
-      // Ctrl+U (View Source)
-      if (e.ctrlKey && e.key === 'u') {
-        e.preventDefault();
-        return false;
-      }
-
-      // Ctrl+S (Save Page)
-      if (e.ctrlKey && e.key === 's') {
-        e.preventDefault();
-        return false;
-      }
-
-      // Cmd variants for Mac
-      if (e.metaKey) {
-        if (e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) {
-          e.preventDefault();
-          return false;
-        }
-        if (e.key === 'u' || e.key === 's') {
-          e.preventDefault();
-          return false;
-        }
-        // Cmd+Option+I (Mac Dev Tools)
-        if (e.altKey && e.key === 'i') {
-          e.preventDefault();
-          return false;
-        }
-      }
-    };
-
-    // =====================
-    // Console Security Message
-    // =====================
-    const clearConsole = () => {
+    // This is the ONLY effective client-side security measure.
+    // It helps prevent "self-XSS" attacks where attackers trick
+    // users into pasting malicious code into the console.
+    const displaySecurityWarning = () => {
+      // Clear any previous output
       console.clear();
       
-      // Security warning
+      // Large warning header
       console.log(
-        '%c⚠️ SECURITY WARNING',
-        'color: #ef4444; font-size: 40px; font-weight: bold; text-shadow: 2px 2px 0 #000;'
+        '%c⚠️ STOP!',
+        'color: #ef4444; font-size: 48px; font-weight: bold; text-shadow: 2px 2px 0 #000;'
       );
+      
+      // Explanation
       console.log(
-        '%cThis browser feature is intended for developers only.',
-        'color: #f59e0b; font-size: 16px;'
+        '%cThis browser feature is intended for developers.',
+        'color: #f59e0b; font-size: 18px; font-weight: bold;'
       );
+      
+      // Warning message
       console.log(
-        '%cIf someone told you to copy-paste something here to enable a feature or "hack" an account, it is a scam and will give them access to your account.',
-        'color: #ef4444; font-size: 14px;'
+        '%cIf someone told you to copy-paste something here to enable a feature, ' +
+        'unlock content, or "hack" an account, it is a scam.',
+        'color: #ef4444; font-size: 14px; line-height: 1.5;'
       );
+      
       console.log(
-        '%cSee https://omniverity.com/security for more information.',
+        '%cPasting code here could give attackers access to your account.',
+        'color: #ef4444; font-size: 14px; font-weight: bold;'
+      );
+      
+      // Help link
+      console.log(
+        '%cLearn more: https://omniverity.com/security',
         'color: #06b6d4; font-size: 12px;'
+      );
+      
+      // Legitimate developer message
+      console.log(
+        '%c\nIf you are a developer, we welcome you! ' +
+        'Check out our careers page: https://omniverity.com/careers',
+        'color: #10b981; font-size: 12px;'
       );
     };
 
+    // Display warning immediately
+    displaySecurityWarning();
+
     // =====================
-    // Dev Tools Detection
+    // Dev Tools Detection (Analytics Only)
     // =====================
-    let devToolsOpen = false;
+    // This is for analytics purposes only - we DO NOT block dev tools.
+    // Blocking dev tools is:
+    // 1. Easily bypassed
+    // 2. Annoying to legitimate developers
+    // 3. Not a real security measure
+    let devToolsDetected = false;
     
     const detectDevTools = () => {
       const widthThreshold = window.outerWidth - window.innerWidth > 160;
       const heightThreshold = window.outerHeight - window.innerHeight > 160;
       
-      if (widthThreshold || heightThreshold) {
-        if (!devToolsOpen) {
-          devToolsOpen = true;
-          // Log warning but don't redirect - could be false positive
-          console.warn('Developer tools detected');
-        }
-      } else {
-        devToolsOpen = false;
+      const isDevToolsOpen = widthThreshold || heightThreshold;
+      
+      // Only log once when dev tools are first opened
+      if (isDevToolsOpen && !devToolsDetected) {
+        devToolsDetected = true;
+        
+        // You could send this to analytics here
+        // analytics.track('dev_tools_opened');
+        
+        // Re-display the warning since they might have cleared console
+        displaySecurityWarning();
+      } else if (!isDevToolsOpen) {
+        devToolsDetected = false;
       }
     };
 
-    // =====================
-    // Prevent Image Dragging
-    // =====================
-    const handleDragStart = (e: DragEvent) => {
-      if (e.target instanceof HTMLImageElement) {
-        e.preventDefault();
-        return false;
-      }
-    };
-
-    // =====================
-    // Prevent Selection on Sensitive Elements
-    // =====================
-    const addNoSelectStyles = () => {
-      const style = document.createElement('style');
-      style.textContent = `
-        /* Prevent selection on sensitive elements */
-        [data-secure],
-        .no-select {
-          -webkit-user-select: none;
-          -moz-user-select: none;
-          -ms-user-select: none;
-          user-select: none;
-        }
-        
-        /* Disable image dragging */
-        img {
-          -webkit-user-drag: none;
-          -khtml-user-drag: none;
-          -moz-user-drag: none;
-          -o-user-drag: none;
-          user-drag: none;
-        }
-        
-        /* Disable printing (optional - can be removed) */
-        @media print {
-          body {
-            display: none !important;
-          }
-        }
-      `;
-      document.head.appendChild(style);
-      return style;
-    };
-
-    // =====================
-    // Apply Security Measures
-    // =====================
-    document.addEventListener('contextmenu', handleContextMenu);
-    document.addEventListener('keydown', handleKeyDown);
-    document.addEventListener('dragstart', handleDragStart);
+    // Check periodically (but don't be annoying about it)
+    const devToolsInterval = setInterval(detectDevTools, 2000);
     
-    const styleElement = addNoSelectStyles();
-    clearConsole();
-    
-    // Check for dev tools periodically
-    const devToolsInterval = setInterval(detectDevTools, 1000);
+    // Also check on resize
     window.addEventListener('resize', detectDevTools);
 
     // =====================
     // Cleanup
     // =====================
     return () => {
-      document.removeEventListener('contextmenu', handleContextMenu);
-      document.removeEventListener('keydown', handleKeyDown);
-      document.removeEventListener('dragstart', handleDragStart);
-      window.removeEventListener('resize', detectDevTools);
       clearInterval(devToolsInterval);
-      
-      if (styleElement && styleElement.parentNode) {
-        styleElement.parentNode.removeChild(styleElement);
-      }
+      window.removeEventListener('resize', detectDevTools);
     };
   }, []);
 
-  // This component doesn't render anything
+  // This component doesn't render anything visible
   return null;
 }
+
+/**
+ * ACCESSIBILITY NOTE
+ * ==================
+ * 
+ * The following "security" measures were intentionally NOT implemented
+ * because they break accessibility and provide no real security:
+ * 
+ * 1. Disabling right-click (contextmenu event)
+ *    - Screen reader users rely on context menus
+ *    - Users need to copy text, save images, etc.
+ *    - Easily bypassed with browser settings
+ * 
+ * 2. Blocking keyboard shortcuts (F12, Ctrl+Shift+I, etc.)
+ *    - Many shortcuts overlap with assistive technologies
+ *    - Screen readers use keyboard extensively
+ *    - Easily bypassed
+ * 
+ * 3. Preventing text selection
+ *    - Users need to copy addresses, codes, etc.
+ *    - Breaks basic web usability
+ *    - Violates WCAG guidelines
+ * 
+ * 4. Disabling print
+ *    - Users may need printed copies for accessibility
+ *    - Some users prefer reading printed documents
+ *    - Easily bypassed
+ * 
+ * 5. Dev tools detection and blocking
+ *    - Legitimate developers need dev tools
+ *    - Security researchers need dev tools
+ *    - False positives are common
+ *    - Easily bypassed
+ * 
+ * For actual security, see:
+ * - next.config.js (CSP, HSTS, etc.)
+ * - Server-side authentication
+ * - API rate limiting
+ * - Input validation
+ */

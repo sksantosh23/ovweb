@@ -1,60 +1,66 @@
-'use client';
+import { Metadata } from 'next';
+import IndustriesPageClient from '@/components/pages/IndustriesPageClient';
+import { BreadcrumbSchema } from '@/components/seo/StructuredData';
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { 
-  Building2, Heart, Factory, ShoppingCart, Plane, 
-  Banknote, GraduationCap, Shield, Phone, Truck,
-  Cpu, ChevronDown, Menu, X, ArrowRight, CheckCircle,
-  TrendingUp, Users, Clock, DollarSign, BarChart3,
-  Target, Zap, Brain, Activity, Globe, Sparkles
-} from 'lucide-react';
+/**
+ * Industries Page - Server Component
+ * 
+ * Handles SEO metadata and structured data.
+ * Client interactivity is in IndustriesPageClient.
+ */
 
-const IndustriesPage = () => {
-  const [scrolled, setScrolled] = useState(false);
-  const [activeIndustry, setActiveIndustry] = useState('healthcare');
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const industries = [
-    {
-      id: 'healthcare',
-      name: 'Healthcare',
-      icon: Heart,
-      description: 'Transform patient care with AI-powered diagnostics',
-      color: 'from-red-500 to-pink-500'
-    },
-    {
-      id: 'finance',
-      name: 'Financial Services',
-      icon: Banknote,
-      description: 'Enhance security with intelligent financial AI',
-      color: 'from-green-500 to-emerald-500'
-    }
-  ];
-
-  return (
-    <div className="min-h-screen bg-slate-900 text-white">
-      <div className="pt-20 px-8">
-        <h1 className="text-5xl font-bold mb-8">Industry Solutions</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          {industries.map((industry) => (
-            <div key={industry.id} className="bg-slate-800 p-6 rounded-lg">
-              <industry.icon className="w-12 h-12 mb-4 text-cyan-400" />
-              <h2 className="text-2xl font-bold mb-2">{industry.name}</h2>
-              <p className="text-gray-400">{industry.description}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
+export const metadata: Metadata = {
+  title: 'Industry Solutions - AI & Digital Transformation by Sector',
+  description: 'OMNIVERITY delivers specialized AI solutions for Healthcare, Financial Services, Manufacturing, Retail, and more. Industry-specific expertise with proven results.',
+  keywords: [
+    'healthcare AI solutions',
+    'financial services AI',
+    'manufacturing automation',
+    'retail technology',
+    'industry digital transformation',
+    'enterprise AI by sector',
+    'vertical AI solutions',
+    'industry-specific technology',
+  ],
+  alternates: {
+    canonical: 'https://omniverity.com/industries',
+  },
+  openGraph: {
+    title: 'Industry Solutions | OMNIVERITY',
+    description: 'Specialized AI and digital transformation solutions tailored for your industry.',
+    url: 'https://omniverity.com/industries',
+    type: 'website',
+    images: [
+      {
+        url: '/images/og-industries.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'OMNIVERITY Industry Solutions',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Industry Solutions | OMNIVERITY',
+    description: 'Specialized AI and digital transformation solutions tailored for your industry.',
+    images: ['/images/twitter-industries.jpg'],
+  },
 };
 
-export default IndustriesPage;
+// Breadcrumb data for structured data
+const breadcrumbs = [
+  { name: 'Home', url: '/' },
+  { name: 'Industries', url: '/industries' },
+];
+
+export default function IndustriesPage() {
+  return (
+    <>
+      {/* Structured Data */}
+      <BreadcrumbSchema items={breadcrumbs} />
+      
+      {/* Page Content */}
+      <IndustriesPageClient />
+    </>
+  );
+}

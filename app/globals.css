@@ -19,10 +19,14 @@
   --bg-secondary: #1e293b;
   --bg-tertiary: #334155;
   
-  /* Text */
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
+  /* Text - WCAG AAA Contrast Ratios */
+  --text-primary: #f8fafc;      /* 15.4:1 against bg-primary */
+  --text-secondary: #cbd5e1;    /* 9.5:1 against bg-primary - upgraded from #94a3b8 */
+  --text-muted: #94a3b8;        /* 5.4:1 against bg-primary - meets AA */
+  
+  /* Focus ring color - high visibility */
+  --focus-ring: #38bdf8;
+  --focus-ring-offset: #0f172a;
   
   /* Spacing */
   --space-xs: 0.25rem;
@@ -49,6 +53,10 @@
   --safe-area-inset-bottom: env(safe-area-inset-bottom);
   --safe-area-inset-left: env(safe-area-inset-left);
   --safe-area-inset-right: env(safe-area-inset-right);
+  
+  /* Touch targets - WCAG 2.5.5 */
+  --touch-target-min: 44px;
+  --touch-target-comfortable: 48px;
 }
 
 /* =========================================
@@ -65,9 +73,11 @@ html {
   -webkit-text-size-adjust: 100%;
   -moz-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  /* Prevent horizontal overflow */
+  overflow-x: hidden;
 }
 
-/* Respect reduced motion preferences */
+/* Respect reduced motion preferences (WCAG 2.3.3) */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -76,6 +86,11 @@ html {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+  
+  /* Keep essential transitions for accessibility */
+  :focus-visible {
+    transition: outline-offset 0.1s ease !important;
   }
 }
 
@@ -108,9 +123,11 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 700;
   line-height: 1.2;
   color: var(--text-primary);
+  /* Prevent text from causing layout shift */
+  text-wrap: balance;
 }
 
-/* Responsive typography */
+/* Responsive typography with fluid scaling */
 h1 {
   font-size: clamp(2rem, 5vw, 4rem);
 }
@@ -123,21 +140,129 @@ h3 {
   font-size: clamp(1.25rem, 3vw, 2rem);
 }
 
+h4 {
+  font-size: clamp(1.125rem, 2.5vw, 1.5rem);
+}
+
 p {
-  max-width: 65ch; /* Optimal reading width */
+  max-width: 65ch; /* Optimal reading width - WCAG best practice */
+}
+
+/* Improve readability for links within text */
+p a,
+li a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+p a:hover,
+li a:hover {
+  text-decoration-thickness: 2px;
 }
 
 /* =========================================
-   Focus States (Accessibility)
+   Focus States (Accessibility - WCAG 2.4.7)
    ========================================= */
+/* Remove default outline - we'll add our own */
 :focus {
   outline: none;
 }
 
+/* Enhanced focus-visible for keyboard navigation */
 :focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 3px solid var(--focus-ring);
   outline-offset: 2px;
   border-radius: var(--radius-sm);
+}
+
+/* High contrast focus for buttons and interactive elements */
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 6px rgba(56, 189, 248, 0.2);
+}
+
+/* Focus within for custom components */
+.focus-within:focus-within {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+/* =========================================
+   High Contrast Mode (Accessibility)
+   ========================================= */
+@media (prefers-contrast: high) {
+  :root {
+    --text-primary: #ffffff;
+    --text-secondary: #ffffff;
+    --text-muted: #e2e8f0;
+    --bg-tertiary: #475569;
+    --focus-ring: #ffffff;
+  }
+  
+  /* Increase border visibility */
+  .card,
+  .btn,
+  input,
+  select,
+  textarea {
+    border-width: 2px;
+  }
+  
+  /* Ensure links are distinguishable */
+  a {
+    text-decoration: underline;
+  }
+}
+
+/* =========================================
+   Forced Colors Mode (Windows High Contrast)
+   ========================================= */
+@media (forced-colors: active) {
+  /* Ensure focus indicators work in forced colors mode */
+  :focus-visible {
+    outline: 3px solid CanvasText;
+    outline-offset: 2px;
+  }
+  
+  /* Preserve button borders */
+  .btn {
+    border: 2px solid ButtonText;
+  }
+  
+  .btn:hover {
+    border-color: Highlight;
+  }
+  
+  /* Ensure cards have visible borders */
+  .card {
+    border: 2px solid CanvasText;
+  }
+  
+  /* Links must be distinguishable */
+  a {
+    text-decoration: underline;
+    color: LinkText;
+  }
+  
+  /* Form elements */
+  input,
+  select,
+  textarea {
+    border: 2px solid CanvasText;
+    background: Canvas;
+    color: CanvasText;
+  }
+  
+  /* SVG icons */
+  svg {
+    forced-color-adjust: auto;
+  }
 }
 
 /* =========================================
@@ -209,10 +334,11 @@ p {
   transition: all var(--transition-normal) ease;
   cursor: pointer;
   border: none;
+  text-decoration: none;
   
-  /* Minimum touch target size for mobile */
-  min-height: 44px;
-  min-width: 44px;
+  /* Minimum touch target size (WCAG 2.5.5) */
+  min-height: var(--touch-target-min);
+  min-width: var(--touch-target-min);
 }
 
 .btn:disabled {
@@ -228,6 +354,10 @@ p {
 .btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 10px 40px -10px rgba(99, 102, 241, 0.5);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .btn-secondary {
@@ -256,15 +386,23 @@ select {
   font-size: 1rem;
   transition: all var(--transition-normal) ease;
   
-  /* Minimum touch target */
-  min-height: 44px;
+  /* Minimum touch target (WCAG 2.5.5) */
+  min-height: var(--touch-target-min);
 }
 
 input:focus,
 textarea:focus,
 select:focus {
   border-color: var(--color-accent);
-  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.1);
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.2);
+}
+
+/* Error state */
+input[aria-invalid="true"],
+textarea[aria-invalid="true"],
+select[aria-invalid="true"] {
+  border-color: var(--color-error);
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
 }
 
 input::placeholder,
@@ -279,6 +417,27 @@ textarea::placeholder {
   select {
     font-size: 16px !important;
   }
+}
+
+/* Form labels */
+label {
+  display: block;
+  margin-bottom: var(--space-xs);
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+/* Required field indicator */
+label[data-required]::after {
+  content: " *";
+  color: var(--color-error);
+}
+
+/* Form error messages */
+.error-message {
+  color: var(--color-error);
+  font-size: 0.875rem;
+  margin-top: var(--space-xs);
 }
 
 /* =========================================
@@ -296,6 +455,11 @@ textarea::placeholder {
 .card:hover {
   border-color: var(--text-muted);
   transform: translateY(-4px);
+}
+
+/* Card with no transform on hover (for clickable cards) */
+.card-static:hover {
+  transform: none;
 }
 
 /* =========================================
@@ -323,6 +487,17 @@ textarea::placeholder {
    Animations
    ========================================= */
 @keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in-up {
   from {
     opacity: 0;
     transform: translateY(20px);
@@ -373,6 +548,10 @@ textarea::placeholder {
 
 .animate-fade-in {
   animation: fade-in 0.6s ease forwards;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease forwards;
 }
 
 .animate-slide-up {
@@ -438,7 +617,7 @@ textarea::placeholder {
 }
 
 /* =========================================
-   Image Placeholders
+   Image Placeholders & CLS Prevention
    ========================================= */
 .image-placeholder {
   background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
@@ -473,8 +652,30 @@ textarea::placeholder {
   }
 }
 
+/* CLS Prevention - Reserve space for images */
+.aspect-video {
+  aspect-ratio: 16 / 9;
+}
+
+.aspect-square {
+  aspect-ratio: 1 / 1;
+}
+
+.aspect-4-3 {
+  aspect-ratio: 4 / 3;
+}
+
+.aspect-3-2 {
+  aspect-ratio: 3 / 2;
+}
+
+/* Prevent CLS from font loading */
+.font-loading {
+  font-synthesis: none;
+}
+
 /* =========================================
-   Screen Reader Only
+   Screen Reader Only (Accessibility)
    ========================================= */
 .sr-only {
   position: absolute;
@@ -488,7 +689,9 @@ textarea::placeholder {
   border-width: 0;
 }
 
-.sr-only-focusable:focus {
+/* Allow sr-only elements to become visible on focus */
+.sr-only-focusable:focus,
+.sr-only-focusable:active {
   position: static;
   width: auto;
   height: auto;
@@ -497,6 +700,42 @@ textarea::placeholder {
   overflow: visible;
   clip: auto;
   white-space: normal;
+}
+
+/* Skip link styling */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 0;
+  background: var(--color-primary);
+  color: white;
+  padding: var(--space-sm) var(--space-md);
+  z-index: 9999;
+  text-decoration: none;
+  font-weight: 600;
+  border-radius: 0 0 var(--radius-md) 0;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* =========================================
+   Live Regions (Accessibility)
+   ========================================= */
+[aria-live] {
+  /* Ensure live regions are not visually hidden by default */
+}
+
+.visually-hidden-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
 }
 
 /* =========================================
@@ -529,11 +768,42 @@ textarea::placeholder {
   .touch-spacing > * + * {
     margin-top: var(--space-md);
   }
-  
-  .touch-target {
-    min-height: 48px;
-    min-width: 48px;
-  }
+}
+
+/* Touch target size utilities */
+.touch-target {
+  min-height: var(--touch-target-min);
+  min-width: var(--touch-target-min);
+}
+
+.touch-target-comfortable {
+  min-height: var(--touch-target-comfortable);
+  min-width: var(--touch-target-comfortable);
+}
+
+/* =========================================
+   Text Utilities
+   ========================================= */
+/* Line clamping for truncation */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 /* =========================================
@@ -543,9 +813,55 @@ textarea::placeholder {
   body {
     background: white;
     color: black;
+    font-size: 12pt;
+    line-height: 1.5;
   }
   
-  .no-print {
+  /* Show URLs after links */
+  a[href]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: #666;
+  }
+  
+  /* Don't print these elements */
+  .no-print,
+  nav,
+  .btn,
+  footer,
+  .skip-link {
     display: none !important;
   }
+  
+  /* Ensure images don't break across pages */
+  img {
+    max-width: 100% !important;
+    page-break-inside: avoid;
+  }
+  
+  /* Prevent orphans and widows */
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+    page-break-inside: avoid;
+  }
+  
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+}
+
+/* =========================================
+   Dark Mode Toggle Support (Future)
+   ========================================= */
+@media (prefers-color-scheme: light) {
+  /* Light mode variables - can be enabled later */
+  /* :root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f1f5f9;
+    --bg-tertiary: #e2e8f0;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+  } */
 }
